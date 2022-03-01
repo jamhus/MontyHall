@@ -1,6 +1,7 @@
 ﻿using API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace API.Controllers
 {
@@ -32,27 +33,31 @@ namespace API.Controllers
             {
                 Result = result,
                 Tries = gameReq.Tries,
-
             };
 
             return res;
         }
 
-        private int getGameRound(List<Door> doors, bool change)
+        // adding http as work around for swagger not allowing me to use public , and public is needed for testing 
+        [HttpGet("getGameRound")]
+        public int getGameRound(List<Door> doors, bool change)
         {
             //randomly get a door 
             Random randomer = new Random();
             int choosenDoorId = randomer.Next(1, 3);
 
             // define all the doors 
+            var definedDoors = defineDoors(doors);
+
             // the door with id picked up by the code 
-            var currentDoor = doors.First(door=> door.Id == choosenDoorId);
+            var currentDoor = definedDoors.CurrentDoor;
 
             // the door that gets opened , not winner and not current 
-            var doorToOpen = doors.First(door => door.Id != currentDoor.Id && !door.winner);
+            var doorToOpen = definedDoors.DoorToOpen;
 
             // the door that stays closed with the currentDoor
-            var reminingDoor = doors.First(door => door.Id != currentDoor.Id && door.Id != choosenDoorId);
+            var reminingDoor = definedDoors.ReminingDoor;
+
             
             // return the remining door if the user wished to switch , otherwise the current door if 
             // return 1 if the user wins and 0 if loses
@@ -67,7 +72,32 @@ namespace API.Controllers
             }
         }
 
-        private List<Door> CreateDoors()
+        [HttpGet("defineDoors")]
+        public DefinedDoors defineDoors(List<Door> doors)
+        {
+            //randomly get a door 
+            Random randomer = new Random();
+            int choosenDoorId = randomer.Next(1, 3);
+            // define all the doors 
+            // the door with id picked up by the code 
+            var currentDoor = doors.First(door => door.Id == choosenDoorId);
+
+            // the door that gets opened , not winner and not current 
+            var doorToOpen = doors.First(door => door.Id != currentDoor.Id && !door.winner);
+
+            // the door that stays closed with the currentDoor
+            var reminingDoor = doors.First(door => door.Id != currentDoor.Id && door.Id != choosenDoorId);
+
+            return new DefinedDoors
+            {
+                CurrentDoor = currentDoor,
+                DoorToOpen = doorToOpen,
+                ReminingDoor = reminingDoor
+            };
+        }
+
+        [HttpGet("CreateDoors")]
+        public List<Door> CreateDoors()
         {
             var doors = new List<Door>();
 
