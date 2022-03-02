@@ -50,7 +50,12 @@ function App() {
           type="number"
           autoFocus
           value={tries}
-          onChange={(e) => setTries(parseInt(e.target.value))}
+          onChange={(e) => {
+            const tries = parseInt(e.target.value);
+            if(tries > 0){
+              setTries(parseInt(e.target.value))
+            }
+          }}
           sx={{ mr: 5 }}
         />
 
